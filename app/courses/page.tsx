@@ -1,38 +1,66 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabase";
+﻿'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-type Course = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-};
-
-export default function Courses() {
-  const [courses, setCourses] = useState<Course[]>([]);
+export default function CoursesPage() {
+  const [courses, setCourses] = useState<any[]>([])
+  const [user, setUser] = useState<any>(null)
+  const [enrolledCourses, setEnrolledCourses] = useState<string[]>([])
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      const { data } = await supabase.from("Courses").select("*");
-      if (data) setCourses(data);
-    };
-    fetchCourses();
-  }, []);
+    const getData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      const { data: coursesData } = await supabase.from('Courses').select('*')
+      setCourses(coursesData || [])
+      if (user) {
+        const { data: enrollments } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('student_id', user.id)
+        setEnrolledCourses(enrollments?.map(e => e.course_id) || [])
+      }
+    }
+    getData()
+  }, [])
+
+  const enroll = async (courseId: string) => {
+    if (!user) { setMessage('Please login first!'); return }
+    const { error } = await supabase.from('enrollments').insert({
+      student_id: user.id,
+      course_id: courseId
+    })
+    if (error) { setMessage('Already enrolled or error!'); return }
+    setEnrolledCourses([...enrolledCourses, courseId])
+    setMessage('Enrolled successfully!')
+  }
 
   return (
-    <main className="max-w-4xl mx-auto mt-20 px-4">
-      <h1 className="text-3xl font-bold mb-8">All Courses</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {courses.map((course) => (
-          <div key={course.id} className="border rounded-lg p-6 shadow">
-            <h2 className="text-xl font-bold mb-2">{course.title}</h2>
-            <p className="text-gray-600 mb-4">{course.description}</p>
-            <p className="text-purple-700 font-bold">${course.price}</p>
-            <a href="https://learnhub-ruqia.lemonsqueezy.com/checkout/buy/f3f1f99a-6315-4871-9439-61bba69f37be" target="_blank" className="mt-4 bg-purple-700 text-white px-4 py-2 rounded w-full block text-center">Enroll Now</a>
-          </div>
-        ))}
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">📚 Available Courses</h1>
+        {message && <p className="bg-green-100 text-green-700 p-3 rounded mb-4">{message}</p>}
+        <div className="grid grid-cols-2 gap-6">
+          {courses.map((course) => (
+            <div key={course.id} className="bg-white p-6 rounded shadow">
+              <h2 className="text-xl font-bold mb-2">{course.title}</h2>
+              <p className="text-gray-500 mb-4">{course.description}</p>
+              {enrolledCourses.includes(course.id) ? (
+                <button className="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed">
+                  ✅ Enrolled
+                </button>
+              ) : (
+                <button
+                  onClick={() => enroll(course.id)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                  Enroll Now
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </main>
-  );
+    </div>
+  )
 }
