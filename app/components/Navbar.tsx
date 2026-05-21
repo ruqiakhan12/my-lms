@@ -29,6 +29,7 @@ export default function Navbar() {
         <Link href="/progress" className="hover:underline">Progress</Link>
         <Link href="/certificate" className="hover:underline">Certificate</Link>
         <Link href="/classroom" className="hover:underline">Live Class</Link>
+        <Link href="/whiteboard" className="hover:underline">Whiteboard</Link>
         <Link href="/analytics" className="hover:underline">Analytics</Link>
         <Link href="/teacher" className="hover:underline">Teacher</Link>
         {user ? (
