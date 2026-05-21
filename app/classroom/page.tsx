@@ -1,8 +1,7 @@
 ﻿'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 
 export default function ClassroomPage() {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
   const [roomName, setRoomName] = useState('')
   const [joined, setJoined] = useState(false)
 
@@ -30,10 +29,9 @@ export default function ClassroomPage() {
           </button>
         </div>
       ) : (
-        <div className="w-full" style={{height: '80vh'}}>
+        <div className="w-full" style={{height: '85vh'}}>
           <iframe
-            ref={iframeRef}
-            src={`https://learnhub-ruqia.daily.co/${roomName}`}
+            src={`https://meet.jit.si/learnhub-${roomName}`}
             allow="camera; microphone; fullscreen; speaker; display-capture"
             style={{width: '100%', height: '100%', border: 'none', borderRadius: '8px'}}
           />
