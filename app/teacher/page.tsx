@@ -24,12 +24,15 @@ export default function TeacherDashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">🎓 Teacher Dashboard</h1>
-          <Link href="/teacher/create-course">
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-              + Create New Course
-            </button>
-          </Link>
+          <h1 className="text-3xl font-bold">Teacher Dashboard</h1>
+          <div className="flex gap-2">
+            <Link href="/teacher/create-course">
+              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Course</button>
+            </Link>
+            <Link href="/teacher/create-assignment">
+              <button className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">+ New Assignment</button>
+            </Link>
+          </div>
         </div>
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white p-6 rounded shadow text-center">
@@ -52,22 +55,16 @@ export default function TeacherDashboard() {
               <h3 className="font-bold text-lg mb-1">{course.title}</h3>
               <p className="text-gray-500 text-sm mb-4">{course.description}</p>
               <div className="flex gap-2">
-                <button className="border border-blue-600 text-blue-600 px-3 py-1 rounded hover:bg-blue-50 text-sm">
-                  Edit Course
-                </button>
+                <button className="border border-blue-600 text-blue-600 px-3 py-1 rounded text-sm">Edit Course</button>
                 <Link href="/teacher/lessons">
-                  <button className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
-                    Manage Lessons
-                  </button>
+                  <button className="bg-green-600 text-white px-3 py-1 rounded text-sm">Manage Lessons</button>
+                </Link>
+                <Link href="/teacher/create-assignment">
+                  <button className="bg-purple-600 text-white px-3 py-1 rounded text-sm">Add Assignment</button>
                 </Link>
               </div>
             </div>
           ))}
-          {courses.length === 0 && (
-            <p className="text-gray-400 col-span-2 text-center py-8">
-              No courses yet. Click "Create New Course" to start!
-            </p>
-          )}
         </div>
       </div>
     </div>
