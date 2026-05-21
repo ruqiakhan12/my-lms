@@ -31,12 +31,12 @@ export default function CreateAssignment() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">📝 Create Assignment</h1>
+        <h1 className="text-3xl font-bold mb-8">Create Assignment</h1>
         {message && <p className="bg-green-100 text-green-700 p-3 rounded mb-4">{message}</p>}
         <div className="bg-white p-6 rounded shadow">
           <div className="mb-4">
-            <label className="block font-semibold mb-1">Assignment Title</label>
-            <input className="w-full border rounded p-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Week 1 Quiz" />
+            <label className="block font-semibold mb-1">Title</label>
+            <input className="w-full border rounded p-2" value={title} onChange={e => setTitle(e.target.value)} placeholder="Assignment title" />
           </div>
           <div className="mb-4">
             <label className="block font-semibold mb-1">Description</label>
@@ -54,7 +54,7 @@ export default function CreateAssignment() {
           </button>
         </div>
         <button onClick={() => router.push('/teacher')} className="mt-4 text-blue-600 hover:underline">
-          ← Back to Teacher Dashboard
+          Back to Teacher Dashboard
         </button>
       </div>
     </div>
