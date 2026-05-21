@@ -81,35 +81,33 @@ export default function WhiteboardPage() {
   const colors = ['#000000', '#ff0000', '#0000ff', '#00aa00', '#ff6600', '#9900cc']
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col">
-      <div className="bg-gray-800 text-white px-4 py-2 flex flex-wrap gap-3 items-center">
-        <h1 className="font-bold">🖊️ Whiteboard</h1>
-        <div className="flex gap-1">
+    <div style={{height: '100vh', display: 'flex', flexDirection: 'column', background: '#1a1a2e'}}>
+      <div style={{background: '#16213e', color: 'white', padding: '8px 16px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center'}}>
+        <span style={{fontWeight: 'bold'}}>🖊️ Whiteboard</span>
+        <div style={{display: 'flex', gap: '4px'}}>
           {colors.map(c => (
             <button key={c} onClick={() => { setColor(c); setTool('pen') }}
-              style={{backgroundColor: c, border: color === c ? '3px solid yellow' : '2px solid gray'}}
-              className="w-7 h-7 rounded-full"/>
+              style={{backgroundColor: c, border: color === c && tool === 'pen' ? '3px solid yellow' : '2px solid gray', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer'}}/>
           ))}
         </div>
-        <input type="range" min="1" max="20" value={size} onChange={e => setSize(Number(e.target.value))} className="w-20"/>
-        <button onClick={() => setTool('pen')} className={`px-2 py-1 rounded text-xs ${tool === 'pen' ? 'bg-blue-500' : 'bg-gray-600'}`}>✏️ Pen</button>
-        <button onClick={() => setTool('eraser')} className={`px-2 py-1 rounded text-xs ${tool === 'eraser' ? 'bg-blue-500' : 'bg-gray-600'}`}>🧹 Eraser</button>
-        <button onClick={clearBoard} className="bg-red-600 px-2 py-1 rounded text-xs">🗑️ Clear</button>
-        <span className="text-gray-400 text-xs">📋 Ctrl+V to paste image</span>
+        <input type="range" min="1" max="20" value={size} onChange={e => setSize(Number(e.target.value))} style={{width: '80px'}}/>
+        <button onClick={() => setTool('pen')} style={{background: tool === 'pen' ? '#3b82f6' : '#4b5563', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer'}}>✏️ Pen</button>
+        <button onClick={() => setTool('eraser')} style={{background: tool === 'eraser' ? '#3b82f6' : '#4b5563', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer'}}>🧹 Eraser</button>
+        <button onClick={clearBoard} style={{background: '#dc2626', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer'}}>🗑️ Clear</button>
+        <span style={{color: '#9ca3af', fontSize: '12px'}}>📋 Ctrl+V to paste image</span>
         {!showVideo ? (
-          <div className="flex gap-2 items-center ml-auto">
-            <input className="text-black px-2 py-1 rounded text-xs" placeholder="Room name" value={roomName} onChange={e => setRoomName(e.target.value)} />
-            <button onClick={() => roomName && setShowVideo(true)} className="bg-green-600 px-2 py-1 rounded text-xs">📹 Start Video</button>
+          <div style={{display: 'flex', gap: '6px', alignItems: 'center', marginLeft: 'auto'}}>
+            <input style={{color: 'black', padding: '4px 8px', borderRadius: '4px', fontSize: '12px'}} placeholder="Room name" value={roomName} onChange={e => setRoomName(e.target.value)} />
+            <button onClick={() => roomName && setShowVideo(true)} style={{background: '#16a34a', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer'}}>📹 Start Video</button>
           </div>
         ) : (
-          <button onClick={() => setShowVideo(false)} className="bg-red-600 px-2 py-1 rounded text-xs ml-auto">❌ Stop Video</button>
+          <button onClick={() => setShowVideo(false)} style={{background: '#dc2626', color: 'white', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto'}}>❌ Stop Video</button>
         )}
       </div>
-      <div className="flex flex-1" style={{height: 'calc(100vh - 55px)'}}>
+      <div style={{display: 'flex', flex: 1, overflow: 'hidden'}}>
         <canvas
           ref={canvasRef}
-          className="bg-white cursor-crosshair"
-          style={{width: showVideo ? '65%' : '100%', height: '100%'}}
+          style={{background: 'white', cursor: 'crosshair', width: showVideo ? '65%' : '100%', height: '100%', display: 'block'}}
           onMouseDown={startDraw}
           onMouseMove={draw}
           onMouseUp={stopDraw}
