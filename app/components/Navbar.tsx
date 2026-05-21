@@ -20,19 +20,21 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-blue-700 text-white px-6 py-3 flex flex-wrap justify-between items-center gap-2">
-      <Link href="/" className="text-xl font-bold">LearnHub</Link>
-      <div className="flex flex-wrap gap-3 items-center text-sm">
+    <nav className="bg-blue-700 text-white px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+      <Link href="/" className="text-lg font-bold">LearnHub</Link>
+      <div className="flex flex-wrap gap-2 items-center text-xs">
         <Link href="/courses" className="hover:underline">Courses</Link>
         <Link href="/assignments" className="hover:underline">Assignments</Link>
         <Link href="/grades" className="hover:underline">Grades</Link>
         <Link href="/progress" className="hover:underline">Progress</Link>
+        <Link href="/certificate" className="hover:underline">Certificate</Link>
         <Link href="/classroom" className="hover:underline">Live Class</Link>
+        <Link href="/analytics" className="hover:underline">Analytics</Link>
         <Link href="/teacher" className="hover:underline">Teacher</Link>
         {user ? (
-          <button onClick={logout} className="bg-red-500 px-3 py-1 rounded hover:bg-red-600">Logout</button>
+          <button onClick={logout} className="bg-red-500 px-2 py-1 rounded text-xs">Logout</button>
         ) : (
-          <Link href="/login" className="bg-white text-blue-700 px-3 py-1 rounded">Login</Link>
+          <Link href="/login" className="bg-white text-blue-700 px-2 py-1 rounded text-xs">Login</Link>
         )}
       </div>
     </nav>
