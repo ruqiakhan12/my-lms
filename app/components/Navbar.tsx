@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -20,26 +21,31 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-blue-700 text-white px-4 py-3 flex flex-wrap justify-between items-center gap-2">
-      <Link href="/" className="text-lg font-bold">LearnHub</Link>
-      <div className="flex flex-wrap gap-2 items-center text-xs">
-        <Link href="/courses" className="hover:underline">Courses</Link>
-        <Link href="/assignments" className="hover:underline">Assignments</Link>
-        <Link href="/grades" className="hover:underline">Grades</Link>
-        <Link href="/progress" className="hover:underline">Progress</Link>
-        <Link href="/certificate" className="hover:underline">Certificate</Link>
-        <Link href="/calendar" className="hover:underline">Calendar</Link>
-        <Link href="/classroom" className="hover:underline">Live Class</Link>
-        <Link href="/whiteboard" className="hover:underline">Whiteboard</Link>
-        <Link href="/forum" className="hover:underline">Forum</Link>
-        <Link href="/analytics" className="hover:underline">Analytics</Link>
-        <Link href="/teacher" className="hover:underline">Teacher</Link>
-        {user ? (
-          <button onClick={logout} className="bg-red-500 px-2 py-1 rounded text-xs">Logout</button>
-        ) : (
-          <Link href="/login" className="bg-white text-blue-700 px-2 py-1 rounded text-xs">Login</Link>
-        )}
+    <nav className="bg-blue-700 text-white px-4 py-3">
+      <div className="flex justify-between items-center">
+        <Link href="/" className="text-lg font-bold">🎓 LearnHub</Link>
+        <button onClick={() => setOpen(!open)} className="text-white text-2xl">☰</button>
       </div>
+      {open && (
+        <div className="flex flex-col gap-2 mt-3 text-sm">
+          <Link href="/courses" onClick={() => setOpen(false)} className="hover:underline">📚 Courses</Link>
+          <Link href="/assignments" onClick={() => setOpen(false)} className="hover:underline">📝 Assignments</Link>
+          <Link href="/grades" onClick={() => setOpen(false)} className="hover:underline">🏆 Grades</Link>
+          <Link href="/progress" onClick={() => setOpen(false)} className="hover:underline">📊 Progress</Link>
+          <Link href="/certificate" onClick={() => setOpen(false)} className="hover:underline">🎓 Certificate</Link>
+          <Link href="/calendar" onClick={() => setOpen(false)} className="hover:underline">📅 Calendar</Link>
+          <Link href="/classroom" onClick={() => setOpen(false)} className="hover:underline">📹 Live Class</Link>
+          <Link href="/whiteboard" onClick={() => setOpen(false)} className="hover:underline">🖊️ Whiteboard</Link>
+          <Link href="/forum" onClick={() => setOpen(false)} className="hover:underline">💬 Forum</Link>
+          <Link href="/analytics" onClick={() => setOpen(false)} className="hover:underline">📈 Analytics</Link>
+          <Link href="/teacher" onClick={() => setOpen(false)} className="hover:underline">👨‍🏫 Teacher</Link>
+          {user ? (
+            <button onClick={logout} className="bg-red-500 px-3 py-1 rounded text-left">🚪 Logout</button>
+          ) : (
+            <Link href="/login" className="bg-white text-blue-700 px-3 py-1 rounded">Login</Link>
+          )}
+        </div>
+      )}
     </nav>
   )
 }
