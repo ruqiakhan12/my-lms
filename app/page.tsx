@@ -28,7 +28,7 @@ export default function HomePage() {
             Learn Anything,<br/>
             <span className="text-yellow-400">Teach Everything</span>
           </h1>
-          <p className="text-xl text-blue-200 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-white font-semibold mb-10 max-w-2xl mx-auto">
             Pakistan's most powerful online learning platform. Join thousands of students and teachers today!
           </p>
           <Link href="/courses">
@@ -51,7 +51,7 @@ export default function HomePage() {
               <div key={stat.label} className="bg-white bg-opacity-20 rounded-2xl p-6 text-center transform hover:scale-105 transition-all">
                 <p className="text-4xl mb-2">{stat.icon}</p>
                 <p className="text-3xl font-bold text-yellow-400">{stat.value}</p>
-                <p className="text-white font-semibold text-lg">{stat.label}</p>
+                <p className="text-white font-bold text-lg">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -59,16 +59,16 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold text-white text-center mb-8">⭐ Featured Courses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {courses.map((course) => (
-              <div key={course.id} className="bg-white bg-opacity-10 rounded-2xl p-6 text-white transform hover:scale-105 transition-all hover:bg-opacity-20">
+              <div key={course.id} className="bg-white rounded-2xl p-6 transform hover:scale-105 transition-all shadow-xl">
                 <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl h-32 mb-4 flex items-center justify-center text-4xl">
                   📚
                 </div>
-                <h3 className="text-xl font-bold mb-2">{course.title}</h3>
-                <p className="text-blue-200 text-sm mb-4">{course.description}</p>
+                <h3 className="text-xl font-extrabold text-gray-900 mb-2">{course.title}</h3>
+                <p className="text-gray-600 font-semibold text-sm mb-4">{course.description}</p>
                 <div className="flex justify-between items-center">
-                  <span className="text-yellow-400 font-bold text-lg">${course.price || '0'}</span>
+                  <span className="text-blue-700 font-extrabold text-xl">${course.price || '0'}</span>
                   <Link href="/courses">
-                    <button className="bg-yellow-400 text-blue-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-yellow-300 transition-all">
+                    <button className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold hover:bg-blue-700 transition-all">
                       Enroll Now →
                     </button>
                   </Link>
@@ -82,7 +82,7 @@ export default function HomePage() {
       <div className="py-16 px-4 text-center">
         <div className="max-w-2xl mx-auto bg-white bg-opacity-10 rounded-3xl p-12 text-white">
           <h2 className="text-4xl font-bold mb-4">Ready to Start? 🚀</h2>
-          <p className="text-blue-200 mb-8">Join LearnHub today and start your learning journey!</p>
+          <p className="text-white font-semibold mb-8">Join LearnHub today and start your learning journey!</p>
           <Link href="/register">
             <button className="bg-yellow-400 text-blue-900 px-10 py-4 rounded-full font-bold text-xl hover:bg-yellow-300 transform hover:scale-105 transition-all shadow-xl">
               Get Started Free ✨
