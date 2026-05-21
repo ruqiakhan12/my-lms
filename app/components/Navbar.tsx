@@ -38,7 +38,8 @@ export default function Navbar() {
           <Link href="/whiteboard" onClick={() => setOpen(false)} className="hover:underline">🖊️ Whiteboard</Link>
           <Link href="/forum" onClick={() => setOpen(false)} className="hover:underline">💬 Forum</Link>
           <Link href="/analytics" onClick={() => setOpen(false)} className="hover:underline">📈 Analytics</Link>
-          <Link href="/teacher" onClick={() => setOpen(false)} className="hover:underline">👨‍🏫 Teacher</Link>
+          <Link href="/teacher" onClick={() => setOpen(false)} className="hover:underline">👨‍🏫 Teacher Dashboard</Link>
+          <Link href="/teacher/portfolio" onClick={() => setOpen(false)} className="hover:underline">🌟 Teacher Portfolio</Link>
           {user ? (
             <button onClick={logout} className="bg-red-500 px-3 py-1 rounded text-left">🚪 Logout</button>
           ) : (
