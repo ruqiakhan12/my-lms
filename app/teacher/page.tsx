@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
@@ -22,48 +22,49 @@ export default function TeacherDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">
-            🏫 Teacher Dashboard
-          </h1>
-          <Link href="/teacher/create-course"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
-            + Create New Course
+          <h1 className="text-3xl font-bold">🎓 Teacher Dashboard</h1>
+          <Link href="/teacher/create-course">
+            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              + Create New Course
+            </button>
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-4xl font-bold text-blue-600">{courses.length}</p>
-            <p className="text-gray-600 mt-1">Total Courses</p>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-white p-6 rounded shadow text-center">
+            <p className="text-3xl font-bold">{courses.length}</p>
+            <p className="text-gray-500">Total Courses</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-4xl font-bold text-green-600">0</p>
-            <p className="text-gray-600 mt-1">Students Enrolled</p>
+          <div className="bg-white p-6 rounded shadow text-center">
+            <p className="text-3xl font-bold">0</p>
+            <p className="text-gray-500">Students Enrolled</p>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow text-center">
-            <p className="text-4xl font-bold text-purple-600">0</p>
-            <p className="text-gray-600 mt-1">Assignments</p>
+          <div className="bg-white p-6 rounded shadow text-center">
+            <p className="text-3xl font-bold">0</p>
+            <p className="text-gray-500">Assignments</p>
           </div>
         </div>
-
         <h2 className="text-xl font-semibold mb-4">Your Courses</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {courses.map(course => (
-            <div key={course.id} className="bg-white p-6 rounded-xl shadow">
-              <h3 className="text-lg font-bold text-gray-800">{course.title}</h3>
-              <p className="text-gray-500 mt-1">{course.description}</p>
-              <div className="mt-4 flex gap-2">
-                <Link href={`/teacher/create-course?edit=${course.id}`}
-                  className="text-blue-600 border border-blue-600 px-4 py-2 rounded-lg text-sm hover:bg-blue-50">
+        <div className="grid grid-cols-2 gap-4">
+          {courses.map((course) => (
+            <div key={course.id} className="bg-white p-6 rounded shadow">
+              <h3 className="font-bold text-lg mb-1">{course.title}</h3>
+              <p className="text-gray-500 text-sm mb-4">{course.description}</p>
+              <div className="flex gap-2">
+                <button className="border border-blue-600 text-blue-600 px-3 py-1 rounded hover:bg-blue-50 text-sm">
                   Edit Course
+                </button>
+                <Link href="/teacher/lessons">
+                  <button className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+                    Manage Lessons
+                  </button>
                 </Link>
               </div>
             </div>
           ))}
           {courses.length === 0 && (
-            <p className="text-gray-400 col-span-2 text-center py-12">
+            <p className="text-gray-400 col-span-2 text-center py-8">
               No courses yet. Click "Create New Course" to start!
             </p>
           )}
