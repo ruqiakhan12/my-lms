@@ -1,55 +1,104 @@
-"use client";
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+﻿'use client'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
 
-type Course = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-};
-
-export default function Home() {
-  const [courses, setCourses] = useState<Course[]>([]);
+export default function HomePage() {
+  const [courses, setCourses] = useState<any[]>([])
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      const { data } = await supabase.from("Courses").select("*");
-      if (data) setCourses(data);
-    };
-    fetchCourses();
-  }, []);
+    setTimeout(() => setVisible(true), 100)
+    const getCourses = async () => {
+      const { data } = await supabase.from('Courses').select('*').limit(4)
+      setCourses(data || [])
+    }
+    getCourses()
+  }, [])
 
   return (
-    <main className="min-h-screen bg-white">
-      <nav className="bg-purple-700 text-white px-8 py-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">LearnHub</h1>
-        <div className="flex gap-4">
-          <a href="/login" className="bg-white text-purple-700 px-4 py-2 rounded">Login</a>
-          <a href="/register" className="bg-yellow-400 text-black px-4 py-2 rounded">Register</a>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+          <div className="absolute top-40 left-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-ping"></div>
         </div>
-      </nav>
-      <section className="bg-purple-600 text-white text-center py-20 px-4">
-        <h2 className="text-5xl font-bold mb-4">Learn Anything, Teach Everything</h2>
-        <p className="text-xl mb-8">Buy and sell online courses from expert instructors</p>
-        <a href="/courses" className="bg-yellow-400 text-black px-8 py-4 rounded font-bold">Browse Courses</a>
-      </section>
-      <section className="py-16 px-8">
-        <h3 className="text-3xl font-bold text-center mb-10">Featured Courses</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {courses.map((course) => (
-            <div key={course.id} className="border rounded-xl shadow p-6">
-              <div className="bg-purple-100 h-40 rounded mb-4"></div>
-              <h4 className="text-xl font-bold mb-2">{course.title}</h4>
-              <p className="text-gray-500 mb-4">{course.description}</p>
-              <div className="flex justify-between items-center">
-                <span className="text-purple-700 font-bold text-xl">${course.price}</span>
-                <a href="https://learnhub-ruqia.lemonsqueezy.com/checkout/buy/f3f1f99a-6315-4871-9439-61bba69f37be" target="_blank" className="bg-purple-700 text-white px-4 py-2 rounded">Enroll Now</a>
+        <div className={`relative z-10 text-center py-32 px-4 transition-all duration-1000 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <h1 className="text-6xl font-extrabold text-white mb-6 drop-shadow-lg">
+            Learn Anything,<br/>
+            <span className="text-yellow-400">Teach Everything</span>
+          </h1>
+          <p className="text-xl text-blue-200 mb-10 max-w-2xl mx-auto">
+            Pakistan's most powerful online learning platform. Join thousands of students and teachers today!
+          </p>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/courses">
+              <button className="bg-yellow-400 text-blue-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-yellow-300 transform hover:scale-105 transition-all shadow-lg">
+                🚀 Browse Courses
+              </button>
+            </Link>
+            <Link href="/register">
+              <button className="bg-white text-blue-900 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transform hover:scale-105 transition-all shadow-lg">
+                ✨ Join Free
+              </button>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            {[
+              { icon: '👨‍🎓', label: 'Students', value: '1000+' },
+              { icon: '📚', label: 'Courses', value: '50+' },
+              { icon: '👨‍🏫', label: 'Teachers', value: '20+' },
+              { icon: '🏆', label: 'Certificates', value: '500+' },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-white bg-opacity-10 backdrop-blur rounded-2xl p-6 text-center text-white transform hover:scale-105 transition-all">
+                <p className="text-4xl mb-2">{stat.icon}</p>
+                <p className="text-3xl font-bold text-yellow-400">{stat.value}</p>
+                <p className="text-blue-200">{stat.label}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <h2 className="text-3xl font-bold text-white text-center mb-8">⭐ Featured Courses</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {courses.map((course, i) => (
+              <div key={course.id} className="bg-white bg-opacity-10 backdrop-blur rounded-2xl p-6 text-white transform hover:scale-105 transition-all hover:bg-opacity-20 cursor-pointer"
+                style={{animationDelay: `${i * 100}ms`}}>
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl h-32 mb-4 flex items-center justify-center text-4xl">
+                  📚
+                </div>
+                <h3 className="text-xl font-bold mb-2">{course.title}</h3>
+                <p className="text-blue-200 text-sm mb-4">{course.description}</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-yellow-400 font-bold">${course.price || '0'}</span>
+                  <Link href="/courses">
+                    <button className="bg-yellow-400 text-blue-900 px-4 py-2 rounded-full text-sm font-bold hover:bg-yellow-300 transition-all">
+                      Enroll Now →
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </section>
-    </main>
-  );
+      </div>
+
+      <div className="py-16 px-4 text-center">
+        <div className="max-w-2xl mx-auto bg-white bg-opacity-10 backdrop-blur rounded-3xl p-12 text-white">
+          <h2 className="text-4xl font-bold mb-4">Ready to Start? 🚀</h2>
+          <p className="text-blue-200 mb-8">Join LearnHub today and start your learning journey!</p>
+          <Link href="/register">
+            <button className="bg-yellow-400 text-blue-900 px-10 py-4 rounded-full font-bold text-xl hover:bg-yellow-300 transform hover:scale-105 transition-all shadow-xl">
+              Get Started Free ✨
+            </button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 }
