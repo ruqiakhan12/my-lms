@@ -34,34 +34,22 @@ export default function CoursesPage() {
   }, [])
 
   const enroll = async (courseId: string, checkoutUrl: string) => {
-    // Step 1 — Login check
     if (!user) {
       localStorage.setItem('pendingCheckout', checkoutUrl)
       router.push('/login')
       return
     }
-
-    // Step 2 — Already enrolled check
     if (enrolledCourses.includes(courseId)) {
-      setMessage('You are already enrolled!')
+      setMessage('Already enrolled!')
       return
     }
-
-    // Step 3 — Lemon Squeezy payment kholо
     localStorage.setItem('pendingCourseId', courseId)
-
-    // Lemon Squeezy script load karo
-    if (window.LemonSqueezy) {
-      window.LemonSqueezy.Url.Open(checkoutUrl)
-    } else {
-      window.open(checkoutUrl, '_blank')
-    }
+    window.open(checkoutUrl, '_blank')
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-5xl mx-auto">
-
         <h1 className="text-3xl font-bold mb-8">
           📚 Available Courses
         </h1>
@@ -87,20 +75,17 @@ export default function CoursesPage() {
 
               {enrolledCourses.includes(course.id) ? (
                 <button
-                  className="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed w-full"
                   disabled
+                  className="bg-gray-400 text-white px-4 py-2 rounded w-full cursor-not-allowed"
                 >
                   ✅ Enrolled
                 </button>
               ) : (
                 <button
-                  onClick={() =>
-                    enroll(
-                      course.id,
-                      course.checkout_url ||
-                      'https://learnhub.lemonsqueezy.com/checkout/buy/YOUR-ID'
-                    )
-                  }
+                  onClick={() => enroll(
+                    course.id,
+                    course.checkout_url || 'https://learnhub-ruqia.lemonsqueezy.com'
+                  )}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full font-bold"
                 >
                   🎓 Enroll Now
@@ -109,7 +94,6 @@ export default function CoursesPage() {
             </div>
           ))}
         </div>
-
       </div>
     </div>
   )
