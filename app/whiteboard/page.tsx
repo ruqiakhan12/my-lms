@@ -5,8 +5,9 @@ export default function WhiteboardPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const streamRef = useRef<MediaStream | null>(null)
-  const screenStreamRef = useRef<MediaStream | null>(null)
   const lastPos = useRef<{ x: number; y: number } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const videoFileRef = useRef<HTMLInputElement>(null)
 
   const [tool, setTool] = useState('pen')
   const [color, setColor] = useState('#000000')
@@ -14,10 +15,12 @@ export default function WhiteboardPage() {
   const [isDrawing, setIsDrawing] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [cameraError, setCameraError] = useState('')
-  const [screenSharing, setScreenSharing] = useState(false)
-  const [screenError, setScreenError] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')
+  const [youtubeInput, setYoutubeInput] = useState('')
+  const [showVideoPanel, setShowVideoPanel] = useState(false)
+  const [videoType, setVideoType] = useState<'youtube' | 'file' | null>(null)
+  const [uploadedVideo, setUploadedVideo] = useState<string | null>(null)
 
-  // Canvas setup
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -29,11 +32,9 @@ export default function WhiteboardPage() {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }, [])
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach(t => t.stop())
-      screenStreamRef.current?.getTracks().forEach(t => t.stop())
     }
   }, [])
 
@@ -41,10 +42,7 @@ export default function WhiteboardPage() {
     const canvas = canvasRef.current!
     const rect = canvas.getBoundingClientRect()
     const src = e.touches ? e.touches[0] : e
-    return {
-      x: src.clientX - rect.left,
-      y: src.clientY - rect.top
-    }
+    return { x: src.clientX - rect.left, y: src.clientY - rect.top }
   }
 
   const startDraw = (e: any) => {
@@ -89,12 +87,60 @@ export default function WhiteboardPage() {
     link.click()
   }
 
-  // CAMERA START
+  // IMAGE UPLOAD onto canvas
+  const handleImageUpload = (e: any) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = canvasRef.current!
+        const ctx = canvas.getContext('2d')!
+        // Center image on canvas
+        const x = (canvas.width - img.width) / 2
+        const y = (canvas.height - img.height) / 2
+        ctx.drawImage(img, x > 0 ? x : 0, y > 0 ? y : 0,
+          Math.min(img.width, canvas.width),
+          Math.min(img.height, canvas.height))
+      }
+      img.src = ev.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // VIDEO FILE UPLOAD
+  const handleVideoUpload = (e: any) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setUploadedVideo(url)
+    setVideoType('file')
+    setShowVideoPanel(true)
+  }
+
+  // YOUTUBE
+  const loadYoutube = () => {
+    if (!youtubeInput) return
+    let videoId = ''
+    if (youtubeInput.includes('v=')) {
+      videoId = youtubeInput.split('v=')[1].split('&')[0]
+    } else if (youtubeInput.includes('youtu.be/')) {
+      videoId = youtubeInput.split('youtu.be/')[1]
+    } else {
+      videoId = youtubeInput
+    }
+    setVideoUrl(`https://www.youtube.com/embed/${videoId}?autoplay=1`)
+    setVideoType('youtube')
+    setShowVideoPanel(true)
+  }
+
+  // CAMERA
   const startCamera = async () => {
     setCameraError('')
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 320, height: 240, facingMode: 'user' },
+        video: { width: 280, height: 200, facingMode: 'user' },
         audio: false
       })
       streamRef.current = stream
@@ -105,74 +151,33 @@ export default function WhiteboardPage() {
       setCameraOn(true)
     } catch (err: any) {
       if (err.name === 'NotAllowedError') {
-        setCameraError('Camera permission denied! Browser settings mein allow karo.')
-      } else if (err.name === 'NotFoundError') {
-        setCameraError('Koi camera nahi mila device pe!')
+        setCameraError('Camera allow karo browser mein!')
       } else {
         setCameraError('Camera error: ' + err.message)
       }
     }
   }
 
-  // CAMERA STOP
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
     setCameraOn(false)
-    setCameraError('')
   }
 
-  // SCREEN SHARE START
-  const startScreenShare = async () => {
-    setScreenError('')
-    try {
-      const stream = await (navigator.mediaDevices as any).getDisplayMedia({
-        video: true,
-        audio: false
-      })
-      screenStreamRef.current = stream
+  const colors = ['#000000', '#ffffff', '#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899']
 
-      const video = document.createElement('video')
-      video.srcObject = stream
-      await video.play()
-
-      const canvas = canvasRef.current!
-      const ctx = canvas.getContext('2d')!
-
-      const drawFrame = () => {
-        if (!screenStreamRef.current) return
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        requestAnimationFrame(drawFrame)
-      }
-      drawFrame()
-      setScreenSharing(true)
-
-      stream.getVideoTracks()[0].onended = () => {
-        stopScreenShare()
-      }
-    } catch (err: any) {
-      if (err.name === 'NotAllowedError') {
-        setScreenError('Screen share cancel ho gaya!')
-      } else {
-        setScreenError('Screen share error: ' + err.message)
-      }
-    }
-  }
-
-  // SCREEN SHARE STOP
-  const stopScreenShare = () => {
-    screenStreamRef.current?.getTracks().forEach(t => t.stop())
-    screenStreamRef.current = null
-    setScreenSharing(false)
-    setScreenError('')
-  }
-
-  const colors = [
-    '#000000', '#ef4444', '#f97316',
-    '#eab308', '#22c55e', '#3b82f6',
-    '#8b5cf6', '#ec4899', '#ffffff'
-  ]
+  const btnStyle = (active: boolean, bg?: string) => ({
+    padding: '6px 12px',
+    borderRadius: 7,
+    border: 'none',
+    background: active ? '#6366f1' : (bg || 'rgba(255,255,255,0.08)'),
+    color: active ? 'white' : (bg ? 'white' : 'rgba(255,255,255,0.8)'),
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontSize: 12,
+    whiteSpace: 'nowrap' as const
+  })
 
   return (
     <div style={{
@@ -186,322 +191,282 @@ export default function WhiteboardPage() {
       {/* TOOLBAR */}
       <div style={{
         background: '#1e293b',
-        padding: '10px 16px',
+        padding: '8px 12px',
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 8,
         flexWrap: 'wrap',
-        borderBottom: '1px solid rgba(255,255,255,0.1)'
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        flexShrink: 0
       }}>
+        <span style={{ color: 'white', fontWeight: 800, fontSize: 14 }}>
+          🎓 Whiteboard
+        </span>
 
-        {/* Logo */}
-        <span style={{
-          color: 'white',
-          fontWeight: 800,
-          fontSize: 16,
-          marginRight: 8
-        }}>🎓 Whiteboard</span>
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
 
-        {/* Divider */}
-        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
+        {/* Tools */}
+        <button onClick={() => setTool('pen')} style={btnStyle(tool === 'pen')}>✏️ Pen</button>
+        <button onClick={() => setTool('eraser')} style={btnStyle(tool === 'eraser')}>🧹 Eraser</button>
 
-        {/* Pen */}
-        <button onClick={() => setTool('pen')} style={{
-          padding: '7px 14px',
-          borderRadius: 8,
-          border: 'none',
-          background: tool === 'pen' ? '#6366f1' : 'rgba(255,255,255,0.08)',
-          color: 'white',
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontSize: 13
-        }}>✏️ Pen</button>
-
-        {/* Eraser */}
-        <button onClick={() => setTool('eraser')} style={{
-          padding: '7px 14px',
-          borderRadius: 8,
-          border: 'none',
-          background: tool === 'eraser' ? '#6366f1' : 'rgba(255,255,255,0.08)',
-          color: 'white',
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontSize: 13
-        }}>🧹 Eraser</button>
-
-        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
 
         {/* Colors */}
         {colors.map(c => (
-          <div
-            key={c}
-            onClick={() => { setColor(c); setTool('pen') }}
+          <div key={c} onClick={() => { setColor(c); setTool('pen') }}
             style={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              background: c,
-              cursor: 'pointer',
-              border: color === c
-                ? '3px solid white'
-                : c === '#ffffff'
-                  ? '2px solid rgba(255,255,255,0.3)'
-                  : '2px solid transparent',
+              width: 22, height: 22, borderRadius: '50%',
+              background: c, cursor: 'pointer',
+              border: color === c ? '3px solid white' : c === '#ffffff' ? '2px solid rgba(255,255,255,0.4)' : '2px solid transparent',
               transform: color === c ? 'scale(1.2)' : 'scale(1)',
-              transition: 'all 0.15s'
-            }}
-          />
+              transition: 'all 0.15s', flexShrink: 0
+            }} />
         ))}
 
-        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
 
         {/* Size */}
-        <input
-          type="range"
-          min={1}
-          max={12}
-          value={lineWidth}
+        <input type="range" min={1} max={12} value={lineWidth}
           onChange={e => setLineWidth(Number(e.target.value))}
-          style={{ width: 80, accentColor: '#6366f1' }}
+          style={{ width: 70, accentColor: '#6366f1' }} />
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>{lineWidth}px</span>
+
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
+
+        {/* Actions */}
+        <button onClick={clearCanvas} style={btnStyle(false, 'rgba(239,68,68,0.3)')}>🗑️ Clear</button>
+        <button onClick={saveImage} style={btnStyle(false, 'rgba(99,102,241,0.3)')}>⬇️ Save</button>
+
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
+
+        {/* Image Upload */}
+        <button onClick={() => fileInputRef.current?.click()}
+          style={btnStyle(false, 'rgba(34,197,94,0.25)')}>
+          🖼️ Add Image
+        </button>
+        <input ref={fileInputRef} type="file" accept="image/*"
+          style={{ display: 'none' }} onChange={handleImageUpload} />
+
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
+
+        {/* Video Upload */}
+        <button onClick={() => videoFileRef.current?.click()}
+          style={btnStyle(false, 'rgba(251,146,60,0.3)')}>
+          📹 Video Upload
+        </button>
+        <input ref={videoFileRef} type="file" accept="video/*"
+          style={{ display: 'none' }} onChange={handleVideoUpload} />
+
+        {/* YouTube */}
+        <input
+          type="text"
+          placeholder="YouTube link..."
+          value={youtubeInput}
+          onChange={e => setYoutubeInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && loadYoutube()}
+          style={{
+            padding: '5px 10px', borderRadius: 7,
+            border: '1px solid rgba(255,255,255,0.15)',
+            background: 'rgba(255,255,255,0.08)',
+            color: 'white', fontSize: 12, width: 160,
+            outline: 'none'
+          }}
         />
-        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
-          {lineWidth}px
-        </span>
+        <button onClick={loadYoutube} style={btnStyle(false, 'rgba(239,68,68,0.35)')}>
+          ▶️ YouTube
+        </button>
 
-        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
+        {showVideoPanel && (
+          <button onClick={() => setShowVideoPanel(false)}
+            style={btnStyle(false, 'rgba(239,68,68,0.3)')}>
+            ✕ Close Video
+          </button>
+        )}
 
-        {/* Clear */}
-        <button onClick={clearCanvas} style={{
-          padding: '7px 14px',
-          borderRadius: 8,
-          border: 'none',
-          background: 'rgba(239,68,68,0.15)',
-          color: '#f87171',
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontSize: 13
-        }}>🗑️ Clear</button>
+        <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.15)' }} />
 
-        {/* Save */}
-        <button onClick={saveImage} style={{
-          padding: '7px 14px',
-          borderRadius: 8,
-          border: 'none',
-          background: 'rgba(99,102,241,0.15)',
-          color: '#a78bfa',
-          fontWeight: 600,
-          cursor: 'pointer',
-          fontSize: 13
-        }}>⬇️ Save</button>
-
-        <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.1)' }} />
-
-        {/* Camera Button */}
+        {/* Camera */}
         {!cameraOn ? (
-          <button onClick={startCamera} style={{
-            padding: '7px 14px',
-            borderRadius: 8,
-            border: 'none',
-            background: 'rgba(34,197,94,0.15)',
-            color: '#4ade80',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: 13
-          }}>📷 Camera On</button>
+          <button onClick={startCamera} style={btnStyle(false, 'rgba(34,197,94,0.25)')}>
+            📷 Camera On
+          </button>
         ) : (
-          <button onClick={stopCamera} style={{
-            padding: '7px 14px',
-            borderRadius: 8,
-            border: 'none',
-            background: '#16a34a',
-            color: 'white',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: 13
-          }}>📷 Stop Camera</button>
+          <button onClick={stopCamera} style={btnStyle(true)}>
+            📷 Stop Camera
+          </button>
         )}
-
-        {/* Screen Share Button */}
-        {!screenSharing ? (
-          <button onClick={startScreenShare} style={{
-            padding: '7px 14px',
-            borderRadius: 8,
-            border: 'none',
-            background: 'rgba(14,165,233,0.15)',
-            color: '#38bdf8',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: 13
-          }}>🖥️ Share Screen</button>
-        ) : (
-          <button onClick={stopScreenShare} style={{
-            padding: '7px 14px',
-            borderRadius: 8,
-            border: 'none',
-            background: '#0ea5e9',
-            color: 'white',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: 13
-          }}>🖥️ Stop Share</button>
-        )}
-
       </div>
 
-      {/* CANVAS AREA */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <canvas
-          ref={canvasRef}
-          style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair', touchAction: 'none' }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={stopDraw}
-          onMouseLeave={stopDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={stopDraw}
-        />
+      {/* MAIN AREA */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* CAMERA BOX */}
-        {cameraOn && (
-          <div style={{
-            position: 'absolute',
-            bottom: 16,
-            right: 16,
-            width: 220,
-            height: 165,
-            background: '#000',
-            borderRadius: 12,
-            overflow: 'hidden',
-            border: '2px solid #6366f1',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-            zIndex: 20
-          }}>
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                transform: 'scaleX(-1)'
-              }}
-            />
+        {/* CANVAS */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <canvas
+            ref={canvasRef}
+            style={{
+              width: '100%', height: '100%',
+              display: 'block', cursor: 'crosshair',
+              touchAction: 'none', background: 'white'
+            }}
+            onMouseDown={startDraw}
+            onMouseMove={draw}
+            onMouseUp={stopDraw}
+            onMouseLeave={stopDraw}
+            onTouchStart={startDraw}
+            onTouchMove={draw}
+            onTouchEnd={stopDraw}
+          />
+
+          {/* Camera Box */}
+          {cameraOn && (
             <div style={{
-              position: 'absolute',
-              top: 8, left: 8,
-              background: 'rgba(0,0,0,0.6)',
-              color: 'white',
-              fontSize: 11,
-              fontWeight: 700,
-              padding: '3px 8px',
-              borderRadius: 6
-            }}>📷 Camera</div>
-            <button
-              onClick={stopCamera}
-              style={{
-                position: 'absolute',
-                top: 6, right: 6,
-                background: 'rgba(239,68,68,0.9)',
-                border: 'none',
-                borderRadius: 6,
-                color: 'white',
-                fontSize: 11,
-                fontWeight: 700,
-                padding: '4px 8px',
-                cursor: 'pointer'
+              position: 'absolute', bottom: 16, right: 16,
+              width: 220, height: 165,
+              background: '#000', borderRadius: 12,
+              overflow: 'hidden', border: '2px solid #6366f1',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.5)', zIndex: 20
+            }}>
+              <video ref={videoRef} autoPlay muted playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+              <div style={{
+                position: 'absolute', top: 7, left: 7,
+                background: 'rgba(0,0,0,0.6)', color: 'white',
+                fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 5
+              }}>📷 Camera</div>
+              <button onClick={stopCamera} style={{
+                position: 'absolute', top: 5, right: 5,
+                background: 'rgba(239,68,68,0.85)', border: 'none',
+                borderRadius: 5, color: 'white', fontSize: 10,
+                fontWeight: 700, padding: '3px 7px', cursor: 'pointer'
               }}>✕</button>
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Screen share badge */}
-        {screenSharing && (
-          <div style={{
-            position: 'absolute',
-            top: 14,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(14,165,233,0.9)',
-            color: 'white',
-            fontSize: 13,
-            fontWeight: 700,
-            padding: '7px 16px',
-            borderRadius: 50,
-            zIndex: 20,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8
-          }}>
+          {/* Camera Error */}
+          {cameraError && (
             <div style={{
-              width: 8, height: 8,
-              borderRadius: '50%',
-              background: 'white',
-              animation: 'pulse 1s infinite'
-            }} />
-            Screen Sharing...
-            <button
-              onClick={stopScreenShare}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                border: 'none',
-                borderRadius: 6,
-                color: 'white',
-                padding: '2px 10px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                marginLeft: 6
-              }}>Stop</button>
-          </div>
-        )}
+              position: 'absolute', bottom: 16, left: '50%',
+              transform: 'translateX(-50%)',
+              background: '#1e293b', border: '1px solid #ef4444',
+              color: '#f87171', fontSize: 13, padding: '10px 16px',
+              borderRadius: 10, zIndex: 30
+            }}>
+              {cameraError}
+              <button onClick={() => setCameraError('')}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', marginLeft: 8 }}>✕</button>
+            </div>
+          )}
 
-        {/* Error message */}
-        {(cameraError || screenError) && (
+          {/* Empty hint */}
           <div style={{
-            position: 'absolute',
-            bottom: 16,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: '#1e293b',
-            border: '1px solid #ef4444',
-            color: '#f87171',
-            fontSize: 13,
-            fontWeight: 500,
-            padding: '10px 18px',
-            borderRadius: 10,
-            zIndex: 30,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10
-          }}>
-            {cameraError || screenError}
-            <button
-              onClick={() => { setCameraError(''); setScreenError('') }}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#94a3b8',
-                cursor: 'pointer',
-                fontSize: 16
-              }}>✕</button>
-          </div>
-        )}
-
-        {/* Empty hint */}
-        {!screenSharing && (
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
+            position: 'absolute', top: '50%', left: '50%',
             transform: 'translate(-50%,-50%)',
-            pointerEvents: 'none',
-            textAlign: 'center',
-            opacity: 0.1
+            pointerEvents: 'none', textAlign: 'center', opacity: 0.08
           }}>
             <div style={{ fontSize: 56 }}>✏️</div>
-            <div style={{ fontSize: 18, fontWeight: 700, color: '#0f172a' }}>
-              Start drawing!
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Start drawing!</div>
+          </div>
+        </div>
+
+        {/* VIDEO PANEL - Side mein */}
+        {showVideoPanel && (
+          <div style={{
+            width: 360,
+            background: '#1e293b',
+            borderLeft: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            flexShrink: 0
+          }}>
+            <div style={{
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: 'white', fontWeight: 700, fontSize: 14 }}>
+                📹 Video Panel
+              </span>
+              <button onClick={() => setShowVideoPanel(false)}
+                style={{
+                  background: 'rgba(239,68,68,0.2)', border: 'none',
+                  borderRadius: 6, color: '#f87171',
+                  fontSize: 12, fontWeight: 700,
+                  padding: '4px 10px', cursor: 'pointer'
+                }}>✕ Close</button>
+            </div>
+
+            <div style={{ flex: 1, padding: 16 }}>
+              {videoType === 'youtube' && videoUrl && (
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>
+                    ▶️ YouTube Video
+                  </p>
+                  <iframe
+                    width="100%"
+                    height="200"
+                    src={videoUrl}
+                    style={{ borderRadius: 10, border: 'none' }}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                  />
+                  {/* YouTube input again */}
+                  <div style={{ marginTop: 16 }}>
+                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 8 }}>
+                      Dusra video load karo:
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="YouTube link paste karo..."
+                      value={youtubeInput}
+                      onChange={e => setYoutubeInput(e.target.value)}
+                      style={{
+                        width: '100%', padding: '8px 12px',
+                        borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)',
+                        background: 'rgba(255,255,255,0.08)',
+                        color: 'white', fontSize: 13, outline: 'none',
+                        marginBottom: 8
+                      }}
+                    />
+                    <button onClick={loadYoutube} style={{
+                      width: '100%', padding: '9px',
+                      background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+                      border: 'none', borderRadius: 8,
+                      color: 'white', fontWeight: 700,
+                      fontSize: 13, cursor: 'pointer'
+                    }}>▶️ Load Video</button>
+                  </div>
+                </div>
+              )}
+
+              {videoType === 'file' && uploadedVideo && (
+                <div>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>
+                    📹 Uploaded Video
+                  </p>
+                  <video
+                    src={uploadedVideo}
+                    controls
+                    style={{
+                      width: '100%', borderRadius: 10,
+                      background: '#000'
+                    }}
+                  />
+                  <button
+                    onClick={() => videoFileRef.current?.click()}
+                    style={{
+                      width: '100%', marginTop: 12, padding: '9px',
+                      background: 'rgba(251,146,60,0.2)',
+                      border: '1px solid rgba(251,146,60,0.4)',
+                      borderRadius: 8, color: '#fb923c',
+                      fontWeight: 700, fontSize: 13, cursor: 'pointer'
+                    }}>
+                    📁 Dusra Video Upload
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
